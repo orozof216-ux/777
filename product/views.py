@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from common.permissions import IsOwner, IsModerator
+from common.validators import validate_user_age
 
 from .models import Category, Product, Review
 from .serializers import (
@@ -58,6 +59,7 @@ class ProductListCreateAPIView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
+        validate_user_age(self.request)
         serializer.save(owner=self.request.user)
 
 
