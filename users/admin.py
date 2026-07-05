@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+
 from users.models import CustomUser
 
 
@@ -7,12 +8,39 @@ from users.models import CustomUser
 class CustomUserModelAdmin(UserAdmin):
     model = CustomUser
 
-    list_display = ("id", "email", "phone_number", "is_active", "is_staff")
-    list_filter = ("is_active", "is_staff", "is_superuser")
+    list_display = (
+        "id",
+        "email",
+        "first_name",
+        "last_name",
+        "phone_number",
+        "birthdate",
+        "is_active",
+        "is_staff",
+    )
+
+    list_filter = (
+        "is_active",
+        "is_staff",
+        "is_superuser",
+    )
+
     ordering = ("email",)
 
     fieldsets = (
-        (None, {"fields": ("email", "password", "phone_number")}),
+        (
+            None,
+            {
+                "fields": (
+                    "email",
+                    "password",
+                    "first_name",
+                    "last_name",
+                    "phone_number",
+                    "birthdate",
+                )
+            },
+        ),
         (
             "Permissions",
             {
@@ -25,7 +53,12 @@ class CustomUserModelAdmin(UserAdmin):
                 ),
             },
         ),
-        ("Important dates", {"fields": ("last_login",)}),
+        (
+            "Important dates",
+            {
+                "fields": ("last_login",),
+            },
+        ),
     )
 
     add_fieldsets = (
@@ -33,9 +66,17 @@ class CustomUserModelAdmin(UserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "phone_number", "password1", "password2"),
+                "fields": (
+                    "email",
+                    "first_name",
+                    "last_name",
+                    "phone_number",
+                    "birthdate",
+                    "password1",
+                    "password2",
+                ),
             },
         ),
     )
 
-    search_fields = ("email",)
+    search_fields = ("email", "first_name", "last_name")

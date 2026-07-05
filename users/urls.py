@@ -10,6 +10,7 @@ from users.views import (
     AuthorizationAPIView,
     ConfirmUserAPIView,
 )
+from users.google_oauth import GoogleLoginAPIView
 
 urlpatterns = [
     path("registration/", RegistrationAPIView.as_view(), name="registration"),
@@ -19,4 +20,6 @@ urlpatterns = [
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+
+    path("google-login/", GoogleLoginAPIView.as_view(), name="google_login"),
 ]

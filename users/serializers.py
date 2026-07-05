@@ -5,24 +5,46 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import ConfirmationCode, CustomUser
 
 
+class OAuthCodeSerializer(serializers.Serializer):
+    code = serializers.CharField()
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
+
         token["email"] = user.email
         token["is_active"] = user.is_active
         token["is_staff"] = user.is_staff
+
         token["birthdate"] = (
             user.birthdate.strftime("%Y-%m-%d")
             if user.birthdate
             else None
         )
+
+        token["first_name"] = user.first_name
+        token["last_name"] = user.last_name
+
         return token
 
 
 class UserBaseSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
+
+    first_name = serializers.CharField(
+        max_length=100,
+        required=False,
+        allow_blank=True,
+    )
+
+    last_name = serializers.CharField(
+        max_length=100,
+        required=False,
+        allow_blank=True,
+    )
 
     phone_number = serializers.CharField(
         max_length=20,

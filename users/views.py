@@ -50,6 +50,8 @@ class RegistrationAPIView(CreateAPIView):
 
         email = serializer.validated_data["email"]
         password = serializer.validated_data["password"]
+        first_name = serializer.validated_data.get("first_name")
+        last_name = serializer.validated_data.get("last_name")
         phone_number = serializer.validated_data.get("phone_number")
         birthdate = serializer.validated_data.get("birthdate")
 
@@ -57,6 +59,8 @@ class RegistrationAPIView(CreateAPIView):
             user = CustomUser.objects.create_user(
                 email=email,
                 password=password,
+                first_name=first_name,
+                last_name=last_name,
                 phone_number=phone_number,
                 birthdate=birthdate,
                 is_active=False,

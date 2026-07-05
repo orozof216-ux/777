@@ -6,6 +6,18 @@ from users.managers import CustomUserManager
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
 
+    first_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+
+    last_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+
     phone_number = models.CharField(
         max_length=20,
         blank=True,
@@ -15,6 +27,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     birthdate = models.DateField(
         blank=True,
         null=True,
+    )
+
+    # Дополнительное поле (необязательно по заданию)
+    registration_source = models.CharField(
+        max_length=20,
+        default="local",
     )
 
     is_active = models.BooleanField(default=False)
