@@ -1,8 +1,9 @@
+from django.core.cache import cache
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from .models import ConfirmationCode, CustomUser
+from .models import CustomUser
 
 
 class OAuthCodeSerializer(serializers.Serializer):
@@ -79,16 +80,16 @@ class ConfirmationSerializer(serializers.Serializer):
         code = attrs.get("code")
 
         try:
-            user = CustomUser.objects.get(id=user_id)
+            CustomUser.objects.get(id=user_id)
         except CustomUser.DoesNotExist:
             raise ValidationError("Пользователь не существует!")
 
-        try:
-            confirmation_code = ConfirmationCode.objects.get(user=user)
-        except ConfirmationCode.DoesNotExist:
-            raise ValidationError("Код подтверждения не найден!")
+        redis_code = cache.get(f"confirmation_code_{user_id}")
 
-        if confirmation_code.code != code:
+        if redis_code is None:
+            raise ValidationError("Код подтверждения не найден или истек!")
+
+        if redis_code != code:
             raise ValidationError("Неверный код подтверждения!")
 
         return attrs

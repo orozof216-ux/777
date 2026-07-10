@@ -2,13 +2,14 @@ import random
 import string
 
 from django.contrib.auth import authenticate
+from django.core.cache import cache
 from django.db import transaction
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 
-from .models import ConfirmationCode, CustomUser
+from .models import CustomUser
 from .serializers import (
     AuthValidateSerializer,
     ConfirmationSerializer,
@@ -68,10 +69,8 @@ class RegistrationAPIView(CreateAPIView):
 
             code = "".join(random.choices(string.digits, k=6))
 
-            ConfirmationCode.objects.create(
-                user=user,
-                code=code,
-            )
+            # Сохраняем код в Redis на 5 минут
+            cache.set(f"confirmation_code_{user.id}", code, timeout=300)
 
         return Response(
             {
@@ -93,12 +92,14 @@ class ConfirmUserAPIView(CreateAPIView):
 
         with transaction.atomic():
             user = CustomUser.objects.get(id=user_id)
+
             user.is_active = True
             user.save()
 
             token, _ = Token.objects.get_or_create(user=user)
 
-            ConfirmationCode.objects.filter(user=user).delete()
+            # Удаляем код из Redis после подтверждения
+            cache.delete(f"confirmation_code_{user.id}")
 
         return Response(
             {
