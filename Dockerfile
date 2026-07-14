@@ -1,20 +1,12 @@
-# Python image
-FROM python:3.10
+FROM python:3.11
 
-# рабочая папка
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
-# зависимости
-COPY requirements.txt /app/
+COPY requirements.txt /app/requirements.txt
 
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install -r /app/requirements.txt
 
-# копируем проект
-COPY . /app/
-
-# порт
-EXPOSE 8000
-
-# запуск
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+COPY . .

@@ -1,33 +1,31 @@
-import os
 from datetime import timedelta
 from pathlib import Path
 
+from decouple import config
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get("SECRET", "django-insecure-dev-key")
+SECRET_KEY = config("SECRET")
 
-DEBUG = True
+DEBUG = config("DEBUG", cast=bool)
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 INSTALLED_APPS = [
     "jazzmin",
-
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     "rest_framework",
-    "rest_framework.authtoken",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
-    "drf_yasg",
-
     "product",
     "users",
+    "rest_framework.authtoken",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
@@ -40,6 +38,27 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "querycount.middleware.QueryCountMiddleware",
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
+
+QUERYCOUNT = {
+    "THRESHOLDS": {
+        "MEDIUM": 50,
+        "HIGH": 200,
+        "MIN_TIME_TO_LOG": 0,
+        "MIN_QUERY_COUNT_TO_LOG": 0,
+    },
+    "IGNORE_REQUEST_PATTERNS": [],
+    "IGNORE_SQL_PATTERNS": [],
+    "DISPLAY_DUPLICATES": None,
+    "RESPONSE_HEADER": "X-DjangoQueryCount-Count",
+}
 
 ROOT_URLCONF = "shop_api.urls"
 
@@ -62,8 +81,12 @@ WSGI_APPLICATION = "shop_api.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASSWORD"),
+        "HOST": config("DB_HOST"),
+        "PORT": config("DB_PORT"),
     }
 }
 
@@ -96,27 +119,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.CustomUser"
 
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ],
-}
-
-QUERYCOUNT = {
-    "THRESHOLDS": {
-        "MEDIUM": 50,
-        "HIGH": 200,
-        "MIN_TIME_TO_LOG": 0,
-        "MIN_QUERY_COUNT_TO_LOG": 0,
-    },
-    "IGNORE_REQUEST_PATTERNS": [],
-    "IGNORE_SQL_PATTERNS": [],
-    "DISPLAY_DUPLICATES": None,
-    "RESPONSE_HEADER": "X-DjangoQueryCount-Count",
-}
-
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
         "AuthToken": {
@@ -144,9 +146,18 @@ SIMPLE_JWT = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/11",
+        "LOCATION": config("REDIS_URL"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     }
 }
+
+CELERY_BROKER_URL = config("CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND")
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "riszav.01@gmail.com"
+EMAIL_HOST_PASSWORD = "ittg ekwy ivnj xjfc"

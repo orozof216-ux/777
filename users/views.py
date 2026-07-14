@@ -9,18 +9,22 @@ from rest_framework.authtoken.models import Token
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 
-from .models import CustomUser
+from .models import ConfirmationCode, CustomUser
 from .serializers import (
     AuthValidateSerializer,
     ConfirmationSerializer,
     RegisterValidateSerializer,
 )
 
+from users.tasks import hello, send_otp_mail
+
 
 class AuthorizationAPIView(CreateAPIView):
     serializer_class = AuthValidateSerializer
 
     def post(self, request):
+        hello.delay("Ruslan")
+
         serializer = AuthValidateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -69,8 +73,18 @@ class RegistrationAPIView(CreateAPIView):
 
             code = "".join(random.choices(string.digits, k=6))
 
-            # Сохраняем код в Redis на 5 минут
-            cache.set(f"confirmation_code_{user.id}", code, timeout=300)
+            ConfirmationCode.objects.create(
+                user=user,
+                code=code,
+            )
+
+            cache.set(
+                f"confirmation_code_{user.id}",
+                code,
+                timeout=300,
+            )
+
+            send_otp_mail.delay(email, code)
 
         return Response(
             {
@@ -98,8 +112,11 @@ class ConfirmUserAPIView(CreateAPIView):
 
             token, _ = Token.objects.get_or_create(user=user)
 
-            # Удаляем код из Redis после подтверждения
-            cache.delete(f"confirmation_code_{user.id}")
+            ConfirmationCode.objects.filter(user=user).delete()
+
+            cache.delete(
+                f"confirmation_code_{user.id}"
+            )
 
         return Response(
             {
